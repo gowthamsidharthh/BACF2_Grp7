@@ -8,7 +8,6 @@ import java.util.ArrayList;
 public class GameController {
     public static final int MAX_TURNS = 18;
     public static final int NUMBER_OF_TABLES = 2;
-    private static final int[] ARRIVAL_TURNS = {1, 4, 7, 10, 13, 16};
 
     // Victory targets
     private static final int TARGET_PAID = 4;
@@ -20,6 +19,7 @@ public class GameController {
     private Waiter waiter;
     private Chef chef;
     private Cashier cashier;
+    private ArrivalSchedule schedule;
     private ConsoleUI ui;
     private int nextCustomerId;
     private int turnsUsed;
@@ -31,6 +31,7 @@ public class GameController {
         this.waiter = new Waiter();
         this.chef = new Chef();
         this.cashier = new Cashier();
+        this.schedule = new ArrivalSchedule();
         this.nextCustomerId = 1;
     }
 
@@ -45,8 +46,8 @@ public class GameController {
 
     private void playTurn(int turn) {
         // Step 1: arrivals
-        if (isArrivalTurn(turn)) {
-            Customer c = new Customer(nextCustomerId);
+        if (schedule.isArrivalTurn(turn)) {
+            Customer c = schedule.createArrival(turn, nextCustomerId);
             nextCustomerId++;
             restaurant.addArrival(c);
             ui.showMessage(c + " arrives and joins the queue.");
@@ -136,15 +137,6 @@ public class GameController {
                 ui.showError(e.getMessage());
             }
         }
-    }
-
-    private boolean isArrivalTurn(int turn) {
-        for (int t : ARRIVAL_TURNS) {
-            if (t == turn) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean isVictory() {

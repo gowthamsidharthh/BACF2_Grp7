@@ -16,6 +16,7 @@ public class GameController {
 
     private Restaurant restaurant;
     private Menu menu;
+    private Host host;
     private Waiter waiter;
     private Chef chef;
     private Cashier cashier;
@@ -28,6 +29,7 @@ public class GameController {
         this.ui = ui;
         this.restaurant = new Restaurant(NUMBER_OF_TABLES);
         this.menu = new Menu();
+        this.host = new Host();
         this.waiter = new Waiter();
         this.chef = new Chef();
         this.cashier = new Cashier();
@@ -36,7 +38,15 @@ public class GameController {
     }
 
     public void run() {
-        ui.showWelcome(MAX_TURNS, menu, waiter, chef, cashier);
+        // Stage 3: staff are passed as one list, so adding a new role
+        // does not change the UI method (polymorphism through getDuty()).
+        ArrayList<Staff> staffList = new ArrayList<>();
+        staffList.add(host);
+        staffList.add(waiter);
+        staffList.add(chef);
+        staffList.add(cashier);
+
+        ui.showWelcome(MAX_TURNS, menu, staffList);
         for (int turn = 1; turn <= MAX_TURNS; turn++) {
             playTurn(turn);
             turnsUsed = turn;
@@ -53,9 +63,25 @@ public class GameController {
             ui.showMessage(c + " arrives and joins the queue.");
         }
 
+        // Stage 3: Happy Hour can be switched on at the start of a turn
+        HappyHour happyHour = restaurant.getHappyHour();
+        if (happyHour.canActivate() && ui.askActivateHappyHour()) {
+            try {
+                happyHour.activate();
+                ui.showMessage("Happy Hour is ON for this turn and the next!");
+            } catch (InvalidActionException e) {
+                ui.showError(e.getMessage());
+            }
+        }
+        if (happyHour.isActive()) {
+            restaurant.applyHappyHourRecovery();
+            ui.showMessage("Happy Hour: waiting customers recover " + happyHour.getRecoveryPoints() + " satisfaction.");
+        }
+
         ui.showTurnStart(turn, MAX_TURNS, restaurant);
 
-        // Steps 2 and 3: Waiter acts first, then the Chef
+        // Steps 2 and 3: Host seats first, then the Waiter, then the Chef
+        doHostTurn();
         doWaiterTurn(turn);
         doChefTurn();
 
@@ -73,7 +99,30 @@ public class GameController {
             ui.showMessage(c + " got fed up and left without paying.");
         }
 
+        happyHour.endTurn();
         ui.showEndOfTurn(turn, restaurant);
+    }
+
+    /** Stage 3: keeps asking until the manager picks a valid Host task (or waits). */
+    private void doHostTurn() {
+        boolean done = false;
+        while (!done) {
+            int choice = ui.askHostAction();
+            try {
+                if (choice == 0) {
+                    ui.showMessage("Host waits.");
+                } else if (choice == 1) {
+                    Customer c = restaurant.findCustomer(ui.askNumber("Customer number to seat: C"));
+                    host.seatCustomer(c, restaurant);
+                    ui.showMessage("Host seats " + c + " at Table " + c.getTable().getId() + ".");
+                } else {
+                    throw new InvalidActionException("Please choose 0 or 1.");
+                }
+                done = true;
+            } catch (InvalidActionException e) {
+                ui.showError(e.getMessage());
+            }
+        }
     }
 
     /** Keeps asking until the manager picks a valid Waiter task (or waits). */

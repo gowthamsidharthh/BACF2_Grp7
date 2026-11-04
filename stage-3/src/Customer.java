@@ -1,10 +1,15 @@
 /**
- * A regular customer.
+ * A customer.
  *
- * The methods getSatisfactionLoss(), calculateBill() and chooseMenuItem()
- * are kept inside the customer on purpose: if other kinds of customer
- * are needed later, they can extend this class and override them
- * (polymorphism), so the GameController never needs type checks.
+ * Behaviour that differs between customer types (satisfaction loss,
+ * bill, food choice) lives here and in subclasses, so a new type can
+ * be added by overriding these methods without touching the rest of
+ * the game (polymorphism, Open-Closed Principle).
+ *
+ * State changes go through small behaviour methods (seatAt, placeOrder,
+ * startEating, ...) instead of letting other classes set the fields
+ * directly. This keeps the customer's own rules in one place and makes
+ * the state changes visible and consistent.
  */
 public class Customer {
     private static final int SATISFACTION_LOSS = 8;
@@ -37,7 +42,8 @@ public class Customer {
     /**
      * Customers choose their own food (the manager never does).
      * Documented rule: customer 1 picks item 1, customer 2 picks item 2, ...
-     * cycling through the menu: Salad, Burger, Pasta, Salad, Burger, Pasta.
+     * cycling through the whole menu. In Stage 3 the menu also has two combos,
+     * so customers 4 and 5 pick combos (unless their subclass overrides this).
      */
     public MenuItem chooseMenuItem(Menu menu) {
         return menu.getItem((id - 1) % menu.size());
@@ -54,6 +60,55 @@ public class Customer {
                 || status == CustomerStatus.ORDERED;
     }
 
+    // ----- state changes (encapsulated) -----
+
+    /** Seats the customer at a table (called by the Restaurant). */
+    public void seatAt(Table table) {
+        this.table = table;
+        this.status = CustomerStatus.SEATED;
+    }
+
+    /** Places an order, taken by the Waiter. */
+    public void placeOrder(Order order) {
+        this.order = order;
+        this.status = CustomerStatus.ORDERED;
+    }
+
+    /** The dish was served this turn: the customer starts eating. */
+    public void startEating(int turn) {
+        this.status = CustomerStatus.EATING;
+        this.servedTurn = turn;
+    }
+
+    /** Finished a full turn of eating and is now ready to pay. */
+    public void becomeReadyToPay(int turn) {
+        this.status = CustomerStatus.READY_TO_PAY;
+        this.readyToPayTurn = turn;
+    }
+
+    /** Paid the bill and left happily. */
+    public void markPaid() {
+        this.status = CustomerStatus.PAID;
+    }
+
+    /** Left without paying (satisfaction hit 0). */
+    public void markLeft() {
+        this.status = CustomerStatus.LEFT;
+    }
+
+    /** Frees the customer from the table (after paying or leaving). */
+    public void clearTable() {
+        this.table = null;
+    }
+
+    /** Stage 3: Happy Hour lets waiting customers recover satisfaction (max 100). */
+    public void recoverSatisfaction(int points) {
+        satisfaction = satisfaction + points;
+        if (satisfaction > MAX_SATISFACTION) {
+            satisfaction = MAX_SATISFACTION;
+        }
+    }
+
     public void loseSatisfaction() {
         satisfaction = satisfaction - getSatisfactionLoss();
         if (satisfaction < 0) {
@@ -61,7 +116,7 @@ public class Customer {
         }
     }
 
-    // ----- getters and setters -----
+    // ----- getters -----
 
     public int getId() {
         return id;
@@ -75,40 +130,20 @@ public class Customer {
         return status;
     }
 
-    public void setStatus(CustomerStatus status) {
-        this.status = status;
-    }
-
     public Table getTable() {
         return table;
-    }
-
-    public void setTable(Table table) {
-        this.table = table;
     }
 
     public Order getOrder() {
         return order;
     }
 
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
     public int getServedTurn() {
         return servedTurn;
     }
 
-    public void setServedTurn(int servedTurn) {
-        this.servedTurn = servedTurn;
-    }
-
     public int getReadyToPayTurn() {
         return readyToPayTurn;
-    }
-
-    public void setReadyToPayTurn(int readyToPayTurn) {
-        this.readyToPayTurn = readyToPayTurn;
     }
 
     @Override

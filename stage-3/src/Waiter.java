@@ -15,17 +15,8 @@ public class Waiter extends Staff {
     }
 
     public void seatCustomer(Customer customer, Restaurant restaurant) throws InvalidActionException {
-        if (customer == null || customer.getStatus() != CustomerStatus.WAITING) {
-            throw new InvalidActionException("That customer is not in the waiting queue.");
-        }
-        Table table = restaurant.findFreeTable();
-        if (table == null) {
-            throw new InvalidActionException("No free table. A table frees up only when its customer pays or leaves.");
-        }
-        table.seat(customer);
-        customer.setTable(table);
-        customer.setStatus(CustomerStatus.SEATED);
-        restaurant.removeFromQueue(customer);
+        // Stage 3: the seating rules now live in Restaurant, shared with the Host
+        restaurant.seatCustomer(customer);
     }
 
     public Order takeOrder(Customer customer, Menu menu, Restaurant restaurant) throws InvalidActionException {
@@ -35,10 +26,12 @@ public class Waiter extends Staff {
         // The customer picks the food and works out their own bill.
         MenuItem item = customer.chooseMenuItem(menu);
         int price = customer.calculateBill(item.getPriceCents());
+        // Stage 3: Happy Hour is applied AFTER the customer's own discount (e.g. VIP).
+        // The price is locked into the Order now, so later changes do not affect it.
+        price = restaurant.getHappyHour().applyDiscount(price);
 
         Order order = new Order(customer, item, price);
-        customer.setOrder(order);
-        customer.setStatus(CustomerStatus.ORDERED);
+        customer.placeOrder(order);
         restaurant.addOrder(order);
         return order;
     }
@@ -47,10 +40,8 @@ public class Waiter extends Staff {
         if (order == null || order.getStatus() != OrderStatus.READY) {
             throw new InvalidActionException("Only a READY order can be served.");
         }
-        order.setStatus(OrderStatus.SERVED);
-        Customer customer = order.getCustomer();
-        customer.setStatus(CustomerStatus.EATING);
-        customer.setServedTurn(turn);
+        order.markServed();
+        order.getCustomer().startEating(turn);
         restaurant.recordServed();
     }
 }

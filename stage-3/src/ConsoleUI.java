@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -25,6 +26,25 @@ public class ConsoleUI {
         }
     }
 
+    /** Stage 3 */
+    public int askHostAction() {
+        System.out.println("HOST:   1) Seat customer  0) Wait");
+        return askNumber("Choose Host task: ");
+    }
+
+    /** Stage 3: returns true if the manager wants to switch on Happy Hour now. */
+    public boolean askActivateHappyHour() {
+        while (true) {
+            int answer = askNumber("Switch on Happy Hour now? (1 = yes, 0 = no): ");
+            if (answer == 1) {
+                return true;
+            } else if (answer == 0) {
+                return false;
+            }
+            System.out.println("  ! Please enter 1 or 0.");
+        }
+    }
+
     public int askWaiterAction() {
         System.out.println("WAITER: 1) Seat customer  2) Take order  3) Serve READY order  0) Wait");
         return askNumber("Choose Waiter task: ");
@@ -43,7 +63,7 @@ public class ConsoleUI {
         System.out.println("  ! Not allowed: " + message + " Try again.");
     }
 
-    public void showWelcome(int maxTurns, Menu menu, Waiter waiter, Chef chef, Cashier cashier) {
+    public void showWelcome(int maxTurns, Menu menu, ArrayList<Staff> staffList) {
         System.out.println("=========================================");
         System.out.println("        WELCOME TO RESTAURANT RUSH");
         System.out.println("=========================================");
@@ -55,9 +75,10 @@ public class ConsoleUI {
             System.out.println("  - " + menu.getItem(i));
         }
         System.out.println("Staff:");
-        System.out.println("  - " + waiter.getName() + ": " + waiter.getDuty());
-        System.out.println("  - " + chef.getName() + ": " + chef.getDuty());
-        System.out.println("  - " + cashier.getName() + ": " + cashier.getDuty());
+        for (Staff s : staffList) {
+            // Each staff subclass gives its own description (polymorphism)
+            System.out.println("  - " + s.getName() + ": " + s.getDuty());
+        }
     }
 
     public void showTurnStart(int turn, int maxTurns, Restaurant r) {
@@ -65,6 +86,7 @@ public class ConsoleUI {
         System.out.println("============== TURN " + turn + " / " + maxTurns + " ==============");
         System.out.println("Revenue: " + Money.format(r.getRevenueCents())
                 + "   Avg satisfaction (paid): " + formatAverage(r.getAverageSatisfaction()));
+        System.out.println("Happy Hour: " + r.getHappyHour().getStatusText());
 
         System.out.print("Waiting queue: ");
         if (r.getWaitingQueue().isEmpty()) {
@@ -98,7 +120,7 @@ public class ConsoleUI {
         if (!anyOrder) {
             System.out.println("  (none)");
         }
-        System.out.println("Staff tasks: Waiter (1 task), Chef (1 unit), Cashier (automatic)");
+        System.out.println("Staff tasks: Host (seat 1), Waiter (1 task), Chef (1 unit), Cashier (automatic)");
         System.out.println("-----------------------------------------");
     }
 

@@ -29,6 +29,21 @@ public class Order {
         }
     }
 
+    /** Called by the Waiter when the dish reaches the table. */
+    public void markServed() {
+        status = OrderStatus.SERVED;
+    }
+
+    /** Called when the customer pays. */
+    public void markPaid() {
+        status = OrderStatus.PAID;
+    }
+
+    /** Called when the customer leaves before being served. */
+    public void cancel() {
+        status = OrderStatus.CANCELLED;
+    }
+
     public int getId() {
         return id;
     }
@@ -51,10 +66,6 @@ public class Order {
 
     public OrderStatus getStatus() {
         return status;
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
     }
 
     @Override

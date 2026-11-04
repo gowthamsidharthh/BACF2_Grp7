@@ -9,6 +9,7 @@ public class Restaurant {
     private ArrayList<Customer> waitingQueue;   // customers without a table, in arrival order
     private ArrayList<Customer> allCustomers;   // every customer who has arrived
     private ArrayList<Order> orders;
+    private HappyHour happyHour;                // Stage 3 pricing policy
 
     private int revenueCents;
     private int paidCount;
@@ -24,6 +25,7 @@ public class Restaurant {
         waitingQueue = new ArrayList<>();
         allCustomers = new ArrayList<>();
         orders = new ArrayList<>();
+        happyHour = new HappyHour();
     }
 
     // ----- arrivals and the queue -----
@@ -33,7 +35,21 @@ public class Restaurant {
         allCustomers.add(customer);
     }
 
-    public void removeFromQueue(Customer customer) {
+    /**
+     * Seats a queued customer at the first free table.
+     * Stage 3: moved here from Waiter so that both the Waiter and the Host
+     * use the same seating rules (no duplicated code).
+     */
+    public void seatCustomer(Customer customer) throws InvalidActionException {
+        if (customer == null || customer.getStatus() != CustomerStatus.WAITING) {
+            throw new InvalidActionException("That customer is not in the waiting queue.");
+        }
+        Table table = findFreeTable();
+        if (table == null) {
+            throw new InvalidActionException("No free table. A table frees up only when its customer pays or leaves.");
+        }
+        table.seat(customer);
+        customer.seatAt(table);
         waitingQueue.remove(customer);
     }
 
@@ -46,26 +62,31 @@ public class Restaurant {
         return null;
     }
 
-    public Customer findCustomer(int id) {
+    /**
+     * Finds a customer by number, or throws so the manager can be told
+     * clearly why the choice was rejected and chooses again.
+     */
+    public Customer findCustomer(int id) throws InvalidActionException {
         for (Customer c : allCustomers) {
             if (c.getId() == id) {
                 return c;
             }
         }
-        return null;
+        throw new InvalidActionException("There is no customer with number C" + id + ".");
     }
 
     public void addOrder(Order order) {
         orders.add(order);
     }
 
-    public Order findOrder(int id) {
+    /** Finds an order by number, or throws with a clear reason. */
+    public Order findOrder(int id) throws InvalidActionException {
         for (Order o : orders) {
             if (o.getId() == id) {
                 return o;
             }
         }
-        return null;
+        throw new InvalidActionException("There is no order with number " + id + ".");
     }
 
     // ----- end-of-turn rules -----
@@ -74,8 +95,7 @@ public class Restaurant {
     public void finishEating(int turn) {
         for (Customer c : allCustomers) {
             if (c.getStatus() == CustomerStatus.EATING && c.getServedTurn() < turn) {
-                c.setStatus(CustomerStatus.READY_TO_PAY);
-                c.setReadyToPayTurn(turn);
+                c.becomeReadyToPay(turn);
             }
         }
     }
@@ -87,10 +107,10 @@ public class Restaurant {
         paidCount++;
         totalPaidSatisfaction += customer.getSatisfaction();
 
-        order.setStatus(OrderStatus.PAID);
-        customer.setStatus(CustomerStatus.PAID);
+        order.markPaid();
+        customer.markPaid();
         customer.getTable().free();
-        customer.setTable(null);
+        customer.clearTable();
     }
 
     /**
@@ -116,15 +136,27 @@ public class Restaurant {
 
     private void customerLeaves(Customer c) {
         if (c.getOrder() != null) {
-            c.getOrder().setStatus(OrderStatus.CANCELLED);
+            c.getOrder().cancel();
         }
         if (c.getTable() != null) {
             c.getTable().free();
-            c.setTable(null);
         }
         waitingQueue.remove(c);
-        c.setStatus(CustomerStatus.LEFT);
+        c.clearTable();
+        c.markLeft();
         unhappyDepartures++;
+    }
+
+    /** Stage 3: while Happy Hour is active, waiting customers recover satisfaction. */
+    public void applyHappyHourRecovery() {
+        if (!happyHour.isActive()) {
+            return;
+        }
+        for (Customer c : allCustomers) {
+            if (c.isWaitingForService()) {
+                c.recoverSatisfaction(happyHour.getRecoveryPoints());
+            }
+        }
     }
 
     public void recordServed() {
@@ -157,6 +189,10 @@ public class Restaurant {
 
     public ArrayList<Order> getOrders() {
         return orders;
+    }
+
+    public HappyHour getHappyHour() {
+        return happyHour;
     }
 
     public int getRevenueCents() {

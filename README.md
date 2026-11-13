@@ -179,3 +179,18 @@ Video length: 15:00
 | 13:28 | Zeon | |
 | 14:06 | Zaahid | |
 | 14:28 | Austin | |
+
+## AI usage history
+
+AI use was permitted for this project. Each member's full AI conversations
+(prompts and replies, in order) are on their own branch, under `ai-history/`.
+
+| Member | Branch | AI history |
+|---|---|---|
+| Zaahid Akbar Tinwala | `Zaahid` | [ai-history](https://github.com/gowthamsidharthh/BACF2_Grp7/tree/Zaahid/ai-history) |
+| Kannan Sinduja Gowtham Sidharth | `Gowtham` | [ai-history](https://github.com/gowthamsidharthh/BACF2_Grp7/tree/Gowtham/ai-history) |
+| Zeon Teo | `Zeon` | [ai-history](https://github.com/gowthamsidharthh/BACF2_Grp7/tree/Zeon/ai-history) |
+| Yew Yiheng Austin | `Austin` | [ai-history](https://github.com/gowthamsidharthh/BACF2_Grp7/tree/Austin/ai-history) |
+| Tan Yong Han | `YongHan` | [ai-history](https://github.com/gowthamsidharthh/BACF2_Grp7/tree/YongHan/ai-history) |
+
+To view a member's history manually: on the repository page, open the branch dropdown (it shows `main` by default), choose the member's branch, then open the `ai-history` folder.

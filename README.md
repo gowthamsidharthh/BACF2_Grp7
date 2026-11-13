@@ -150,4 +150,32 @@ Compare: https://github.com/gowthamsidharthh/BACF2_Grp7/compare/stage-2...stage-
 
 ## Video timestamps
 
-_To be filled in._
+Video length: 15:00
+
+### Required segments (brief Section 6.2)
+
+| # | Segment | Timestamp | Presenter |
+|---|---|---|---|
+| 1 | The game launching from the submitted project (clone, compile, run) | 0:15 | Gowtham |
+| 2 | Meaningful manager choices, including a decision where staff are constrained (Host seats C1 so the Waiter can take her order the same turn) | 2:02 | Zaahid |
+| 3 | A dish going READY → SERVED → payment (Salad READY, served on turn 2, C1 pays $9.00 on turn 4) | 2:40 / 3:15 / 4:00 | Zaahid |
+| 4 | A VIP behaviour (VIP Burger: 10% VIP discount) | 3:45 | Zaahid |
+| 5 | A Stage 3 feature (Happy Hour switched on; VIP Burger costs $10.80; Host seating) | 3:30 | Zaahid |
+| 6 | One victory and one defeat (reproducible runs from `tests/`) | 5:00 (victory) / 5:16 (defeat) | Zeon |
+| 7 | Stage tag comparisons and the diagrams | 5:33 (stage comparisons) / 6:15 (GitHub compare) / 8:47 (class diagrams) / 10:19 (sequence diagram) | Austin, Yong Han |
+
+### Full outline
+
+| Time | Section | Presenter |
+|---|---|---|
+| 0:00 | Game overview, the three stages, build and run, code walkthrough | Gowtham |
+| 2:02 | Gameplay demonstration | Zaahid |
+| 4:35 | Victory and defeat runs | Zeon |
+| 5:33 | Stage comparisons and class diagrams | Austin |
+| 9:47 | Use case and sequence diagram | Yong Han |
+| 12:37 | Individual contributions and key takeaways | All |
+| 12:39 | Gowtham | |
+| 13:06 | Yong Han | |
+| 13:28 | Zeon | |
+| 14:06 | Zaahid | |
+| 14:28 | Austin | |
